@@ -2,6 +2,8 @@ name: Deploy trips to GitHub Pages
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '17 5 * * *'
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,9 +21,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build site and refresh published ferry timetable
+        run: |
+          mkdir -p _site
+          cp index.html CNAME _site/
+          cp -R 26-11-france-to-stmarychurch _site/
+          python scripts/build_sailings.py _site/sailings.json
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
